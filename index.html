@@ -89,9 +89,8 @@
                             others.forEach(function(pos){
                                 needToChange.push(pos);
                             })
-                        }else{
-                            break;
                         }
+                        break;
                     }else if(board[x][y] == !now_black){
                         others.push([x,y]);
                     }else if(board[x][y] == -1){
@@ -209,18 +208,12 @@
         updateGameState();
 
         
-
-        $(".cell").click(function(event){
-            
-            let now = event.target;
-            let col = Number.parseInt($(now).attr('col'));
-            let row = Number.parseInt($(now).attr('row'));
-
-            if(!doChoose(row,col)){
-                return ;
-            }
-            console.log(event.target);
-            console.log(board);
+        var socket = io();
+        socket.on('choose', function(msg){
+            console.log("AI choose:"+msg)
+            let col = Number.parseInt(msg["col"]);
+            let row = Number.parseInt(msg["row"]);
+            doChoose(row,col);
             updateBoard();
             let [gameEnd,whiteNum,blackNum] = updateGameState();
             if(gameEnd){
@@ -236,8 +229,41 @@
             $('#now').text(colorMap[now_black]);
             $("#black_num").text(blackNum);
             $("#white_num").text(whiteNum);
+        });
+
+        $(".cell").click(function(event){
+            
+            let now = event.target;
+            let col = Number.parseInt($(now).attr('col'));
+            let row = Number.parseInt($(now).attr('row'));
+
+            if(!doChoose(row,col)){
+                return ;
+            }
+            socket.emit("choose",{
+                "row":row,
+                "col":col,
+            })
+            console.log(event.target);
+            console.log(board);
+            updateBoard();
+
+
+            let [gameEnd,whiteNum,blackNum] = updateGameState();
+            if(gameEnd){
+                if(whiteNum>blackNum){
+                    $("#result").text("White Win!")
+                }else if(whiteNum<blackNum){
+                    $("#result").text("Black Win!")
+                }else{
+                    $("#result").text("Tie")
+                }
+            }
+
+            $('#now').text(colorMap[now_black]);
+            $("#black_num").text(blackNum);
+            $("#white_num").text(whiteNum);
         })
-         var socket = io();
     </script>
 
 </body>
