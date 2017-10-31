@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <link rel="stylesheet" href="">
+        <style type="text/css">
+        .cell
+        {
+        height:50px;
+        width:50px;
+        background-image: url("./black.jpg");
+        background-size: cover;
+        border: 1px solid black
+        }
+        </style>
+        <script src="/socket.io/socket.io.js"></script>
+
+        <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.slim.min.js"></script>
+</head>
+<body>
+    <div id="now">black</div>
+    <div id="result"></div>
+    <div id="white_num">0</div>
+    <div id="black_num">0</div>
+    <div id="createtable"></div>
+    <script type="text/javascript">
+        board_dom=[];
+        let colorMap={
+            true:'url("black.jpg")',
+            false:'url("white.jpg")',
+            '-1':'url("orange.jpg")'
+        }
+        
+        function CreateTable(rowCount,cellCount)
+        {
+            let col_name = ['a','b','c','d','e','f','g','h'];
+            let table=$("<table border=\"1\"></table>");
+           
+            let header_tr=$("<tr></tr>");
+            header_tr.appendTo(table);
+            $("<th scope='col'></th>").appendTo(header_tr);
+            for(let i=0;i<cellCount;i++){
+                let td=$("<th scope='col'>"+col_name[i]+"</th>");
+                td.appendTo(header_tr);
+            }
+            for(let i=0;i<rowCount;i++)
+            {   
+                board_dom[i] = [];
+                let tr=$("<tr></tr>");
+                tr.appendTo(table);
+                let header_td = $("<th scope='row'>"+(i+1)+"</th>");
+                header_td.appendTo(tr);
+                for(let j=0;j<cellCount;j++)
+                {
+                    let col_id = col_name[j];
+                    let td=$("<td class='cell' id='"+(i)+"-"+(j)+"'></td>");
+                    board_dom[i][j]=td;
+                    td.attr('col',j);
+                    td.attr('row',i);
+                    td.appendTo(tr);
+                }
+            }
+            table.appendTo($("#createtable"));
+           
+        }
+
+        function isAbleToChoose(row,col){
+            let direction=[[0,1],[1,0],[-1,0],[0,-1],[1,1],[-1,-1],[-1,1],[1,-1]];
+            let ableToChoose = false;
+            let needToChange = [];
+            if(board[row][col] !== -1){
+                 return [ableToChoose,needToChange];
+            }
+            
+            
+            for(let d_id = 0;d_id<8;d_id++){
+                let nowd = direction[d_id];
+                let x = row+nowd[0];
+                let y = col+nowd[1];
+                let others = [];
+                //console.log(x,y);
+                while(x>=0 && x<8 && y>=0 && y<8 ){
+                    //console.log([x,y,board[x][y]]);
+                    if(board[x][y] == now_black){
+                        if(others.length>0){
+                            ableToChoose = true;
+                            others.forEach(function(pos){
+                                needToChange.push(pos);
+                            })
+                        }else{
+                            break;
+                        }
+                    }else if(board[x][y] == !now_black){
+                        others.push([x,y]);
+                    }else if(board[x][y] == -1){
+                        break;
+                    }
+                    x += nowd[0];
+                    y += nowd[1];
+                }
+            }
+            return [ableToChoose,needToChange];
+        }
+
+        function findPossibleChoose(){
+            
+            let possibleChoose=[]
+            for(let row = 0;row<8;row++){
+                for(let col=0;col<8;col++){
+                    let [ableToChoose,needToChange] = isAbleToChoose(row,col);
+                    if(ableToChoose){
+                        possibleChoose.push([row,col]);
+                    }
+                }
+            }
+            return possibleChoose;
+        }
+
+        function updateBoard(){
+            for(let i=0;i<8;i++){
+                for(let j=0;j<8;j++){
+                    $("#"+i+"-"+j).css('background-image',colorMap[board[i][j]]);
+                    $("#"+i+"-"+j).css('border-color','black');
+                    //console.log(colorMap[board[i][j]]);
+                }
+            }           
+        }
+
+        function doChoose(row,col){
+            let [ableToChoose,needToChange] = isAbleToChoose(row,col);
+            if(ableToChoose){
+                needToChange.forEach(function(pos){
+                    board[pos[0]][pos[1]] = now_black;
+                })
+            }else{
+                return false;
+            }
+            board[row][col] = now_black;
+            now_black = !now_black;
+            return true;
+        }
+
+        function countBoard(){
+            let isFull = true;
+            let whiteNum = 0;
+            let blackNum = 0;
+            for(let row = 0;row<8;row++){
+                for(let col = 0;col<8;col++){
+                    if(board[row][col] === -1){
+                        isFull = false;
+                    }
+                    if(board[row][col] == 1){
+                        blackNum++;
+                    }
+                    if(board[row][col] == 0){
+                        whiteNum++;
+                    }
+                }
+            }
+            
+            return [isFull,whiteNum,blackNum];
+        }
+
+
+
+        function updateGameState(){
+            let gameEnd = false;
+            let [isFull,whiteNum,blackNum] = countBoard();
+
+            gameEnd = gameEnd || isFull;
+            
+            let possibleChoose = findPossibleChoose();
+            if(possibleChoose.length == 0){
+                now_black = !now_black;
+                possibleChoose = findPossibleChoose();
+                if(possibleChoose.length == 0){
+                    gameEnd = true;
+                }
+            }
+
+            if(possibleChoose.length != 0)
+            {
+                possibleChoose.forEach(function(pos){
+                    //console.log("#"+pos[0]+"-"+pos[1]);
+                    $("#"+pos[0]+"-"+pos[1]).css('border-color','yellow');
+
+                });
+            }
+            return [gameEnd,whiteNum,blackNum];
+        }
+
+        CreateTable(8,8);
+        let now_black = true;
+        let board=[];
+        for(let i=0;i<8;i++){
+            board[i]=[];
+            for(let j=0;j<8;j++){
+                board[i][j]=-1;
+            }
+        }
+        board[3][3]=false;
+        board[3][4]=true;
+        board[4][3]=true;
+        board[4][4]=false;
+        
+        updateBoard();
+        updateGameState();
+
+        
+
+        $(".cell").click(function(event){
+            
+            let now = event.target;
+            let col = Number.parseInt($(now).attr('col'));
+            let row = Number.parseInt($(now).attr('row'));
+
+            if(!doChoose(row,col)){
+                return ;
+            }
+            console.log(event.target);
+            console.log(board);
+            updateBoard();
+            let [gameEnd,whiteNum,blackNum] = updateGameState();
+            if(gameEnd){
+                if(whiteNum>blackNum){
+                    $("#result").text("White Win!")
+                }else if(whiteNum<blackNum){
+                    $("#result").text("Black Win!")
+                }else{
+                    $("#result").text("Tie")
+                }
+            }
+
+            $('#now').text(colorMap[now_black]);
+            $("#black_num").text(blackNum);
+            $("#white_num").text(whiteNum);
+        })
+         var socket = io();
+    </script>
+
+</body>
+</html>
