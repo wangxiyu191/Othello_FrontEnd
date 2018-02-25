@@ -236,6 +236,9 @@
             let now = event.target;
             let col = Number.parseInt($(now).attr('col'));
             let row = Number.parseInt($(now).attr('row'));
+            if(now_black == false ){
+                return ;
+            }
 
             if(!doChoose(row,col)){
                 return ;

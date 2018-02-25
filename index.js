@@ -10,7 +10,7 @@ app.get('/', function(req, res){
 });
 io.on('connection', function(socket){
   console.log('a user connected');
-  var aiProcess = child_process.spawn('/Users/wxy/Projects/cpp/Othello_Server/main',[1]
+  var aiProcess = child_process.spawn('/Users/wxy/Projects/cpp/Othello_Server/cmake-build-release/Othello_Server',[1]
     , { stdio: ['pipe', 'pipe', process.stderr] });
   aiProcess.stdout.on('data', function (data) {
     
@@ -28,6 +28,8 @@ io.on('connection', function(socket){
   });
   socket.on('choose', function(msg){
     console.log('human choose:' + msg["row"]+","+msg["col"]);
+    if(msg["row"]<0 || msg["row"]>7) msg["row"]=0;
+    if(msg["col"]<0 || msg["col"]>7) msg["col"]=0;
     aiProcess.stdin.write(msg["row"]+" "+msg["col"] + "\n");
   });
 
