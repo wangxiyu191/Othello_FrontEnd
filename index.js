@@ -20,7 +20,6 @@ io.on('connection', function (socket) {
     socket.on('request_auth',  () =>{
         console.log(ip+' request auth');
         socket.emit('challenge',challenge)
-        socket.emit('start');
     });
 
     
