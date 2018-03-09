@@ -35,7 +35,7 @@ io.on('connection', function (socket) {
             console.log(ip+' authed success!');
             challenge = hashcash.getChallenge(ip, "othello");
             if (aiProcess === ""){
-                aiProcess = child_process.spawn('/Users/wxy/Projects/cpp/Othello_Server/cmake-build-release/Othello_Server', [1], {
+                aiProcess = child_process.spawn('/home/othello/Othello_Server', [1], {
                     stdio: ['pipe', 'pipe', process.stderr]
                 });
                 isAuthed = true;
