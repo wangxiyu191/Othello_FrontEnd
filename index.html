@@ -22,7 +22,7 @@
 
 <body>
     <div id="result"></div>
-    <button id="auth_button">Submit hashcash result to start</button>
+    <button id="auth_button">Submit hashcash stamp to start</button>
     <div id="now">black</div>
     <div id="white_num">0</div>
     <div id="black_num">0</div>
@@ -199,7 +199,7 @@
             }
             return [gameEnd, whiteNum, blackNum];
         }
-        
+
 
         var socket = io();
 
@@ -213,7 +213,7 @@
         socket.emit("request_auth");
 
         $("#auth_button").click(function (event) {
-            nouce = prompt("result please:");
+            nouce = prompt("stamp please:");
             socket.emit("auth", nouce);
         })
 
@@ -283,11 +283,13 @@
                 let [gameEnd, whiteNum, blackNum] = updateGameState();
                 if (gameEnd) {
                     if (whiteNum > blackNum) {
-                        $("#result").text("White Win!")
+                        $("#result").text(
+                            "White Win,Alert(Flag)! If you did't get a flag please contact admin ASAP"
+                        )
                     } else if (whiteNum < blackNum) {
-                        $("#result").text("Black Win!")
+                        $("#result").text("Black Win,No Flag!")
                     } else {
-                        $("#result").text("Tie")
+                        $("#result").text("Tie,No Flag")
                     }
                 }
 
