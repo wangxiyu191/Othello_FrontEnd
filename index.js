@@ -57,8 +57,8 @@ io.on('connection', function (socket) {
                 socket.emit('start')
             }
         }else{
-            console.log(ip+" wrong nonce");
-            socket.emit('showmessage', "wrong nonce");
+            console.log(ip+" wrong result");
+            socket.emit('showmessage', "wrong result");
         }
     });
 
